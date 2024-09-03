@@ -77,7 +77,7 @@
           "custom": {
             "displayMode": "Auto",
             "enablePagination": false,
-            "filterable": false
+            "filterable": true
           },
           "mappings": [],
           "thresholds": {

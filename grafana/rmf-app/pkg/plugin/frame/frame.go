@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -31,7 +32,9 @@ import (
 	typ "github.com/IBM/RMF/grafana/rmf-app/pkg/plugin/types"
 )
 
-const CaptionPrefix = "Header::"
+const BannerPrefix = "Banner::"
+const CaptionPrefix = "Caption::"
+const ReportDateFormat = "01/02/2006 15:04:05"
 
 func Build(ddsResponse *dds.Response, headers dds.HeaderMap, queryModel *typ.QueryModel) (*data.Frame, error) {
 	logger := log.Logger.With("func", "Build")
@@ -188,14 +191,41 @@ func buildForReport(report *dds.Report, headers dds.HeaderMap, qm *typ.QueryMode
 		frame.Fields = append(frame.Fields, field)
 	}
 
-	for _, caption := range report.Caption.Vars {
-		// All the frames must have the same number of rows.
-		values := make([]string, len(report.Rows))
-		values[0] = caption.Value
-		header := CaptionPrefix + headers.Get(reportName, caption.Name)
-		field := data.NewField(header, nil, values)
+	// FIXME: if there are no data rows, we skip banner and captions. Send it in separate frames?
+	if len(report.Rows) > 0 {
+
+		buildField := func(name string, prefix string, value string) *data.Field {
+			// All the frames must have the same number of rows.
+			values := make([]*string, len(report.Rows))
+			values[0] = &value
+			field := data.NewField(prefix+name, nil, values)
+			return field
+		}
+
+		timeData := report.TimeData
+
+		field := buildField("Samples", BannerPrefix, strconv.Itoa(timeData.NumSamples))
 		frame.Fields = append(frame.Fields, field)
+		if timeData.NumSystems != nil {
+			field = buildField("Systems", BannerPrefix, strconv.Itoa(*timeData.NumSystems))
+			frame.Fields = append(frame.Fields, field)
+		}
+		field = buildField("Time range", BannerPrefix,
+			fmt.Sprintf("%s - %s",
+				timeData.LocalStart.Format(ReportDateFormat),
+				timeData.LocalEnd.Format(ReportDateFormat)))
+		frame.Fields = append(frame.Fields, field)
+		field = buildField("Interval", BannerPrefix,
+			timeData.LocalEnd.Sub(timeData.LocalStart.Time).String())
+		frame.Fields = append(frame.Fields, field)
+
+		for _, caption := range report.Caption.Vars {
+			name := headers.Get(reportName, caption.Name)
+			field := buildField(name, CaptionPrefix, caption.Value)
+			frame.Fields = append(frame.Fields, field)
+		}
 	}
+
 	return frame
 }
 
