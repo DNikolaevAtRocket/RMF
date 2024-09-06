@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"math"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/grafana/grafana-plugin-sdk-go/data"
@@ -57,12 +56,10 @@ func Build(ddsResponse *dds.Response, headers dds.HeaderMap, queryModel *typ.Que
 	}
 
 	if message := report.Message; message != nil {
-		// FIXME: format in the conventional way
-		_, ok := dds.AcceptableMessages[message.Id]
-		if !ok {
-			return nil, fmt.Errorf("DDS error: %s", message)
+		if _, ok := dds.AcceptableMessages[message.Id]; !ok {
+			return nil, message
 		} else {
-			logger.Warn(fmt.Sprintf("DDS error: %s", message))
+			logger.Debug(message.Error())
 		}
 	}
 

@@ -19,6 +19,7 @@ package types
 
 import (
 	"encoding/json"
+	"errors"
 	"net/url"
 	"strings"
 	"time"
@@ -81,6 +82,9 @@ func FromDataQuery(query backend.DataQuery) (*QueryModel, error) {
 	var qm QueryModel
 	if err := json.Unmarshal(query.JSON, &qm); err != nil {
 		return nil, err
+	}
+	if qm.SelectedQuery == "" {
+		return nil, errors.New("query cannot be blank")
 	}
 	qm.TimeRangeFrom, qm.TimeRangeTo = query.TimeRange.From.UTC(), query.TimeRange.To.UTC()
 	return &qm, nil
