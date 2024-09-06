@@ -30,6 +30,8 @@ import (
 
 const TimeSeriesType = "TimeSeries"
 
+var ErrBlankResource = errors.New("resource is blank")
+
 type ResponseStatus struct {
 	TimeOffset time.Duration // The timezone offset value from UTC time
 	Mintime    int
@@ -84,7 +86,7 @@ func FromDataQuery(query backend.DataQuery) (*QueryModel, error) {
 		return nil, err
 	}
 	if qm.SelectedQuery == "" {
-		return nil, errors.New("query cannot be blank")
+		return nil, ErrBlankResource
 	}
 	qm.TimeRangeFrom, qm.TimeRangeTo = query.TimeRange.From.UTC(), query.TimeRange.To.UTC()
 	return &qm, nil

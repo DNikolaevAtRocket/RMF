@@ -211,7 +211,11 @@ func (ds *RMFDatasource) QueryData(ctx context.Context, req *backend.QueryDataRe
 		status := backend.StatusBadRequest
 		qm, err := typ.FromDataQuery(query)
 		if err != nil {
-			response = &backend.DataResponse{Status: status, Error: err}
+			if errors.Is(err, typ.ErrBlankResource) {
+				response = &backend.DataResponse{Status: backend.StatusOK}
+			} else {
+				response = &backend.DataResponse{Status: status, Error: err}
+			}
 		} else {
 			// nolint:contextcheck
 			qm.TimeOffset = ds.ddsClient.GetCachedTimeOffset()
@@ -502,6 +506,7 @@ func (ds *RMFDatasource) queryTableData(ctx context.Context, qm *typ.QueryModel)
 	dataResponse := &backend.DataResponse{}
 	// FIXME: doesn't it need to be cached?
 	if newFrame, err := ds.getFrame(ctx, qm); err != nil {
+		// nolint:errorlint
 		if cause, ok := errors.Unwrap(err).(*dds.Message); ok {
 			dataResponse.Error = cause
 			dataResponse.Status = backend.StatusBadRequest
