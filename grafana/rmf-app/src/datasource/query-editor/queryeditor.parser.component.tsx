@@ -80,13 +80,6 @@ export class QueryEditorAutoCompleteComponent extends PureComponent<Props, state
     this.autoComplDefProps = { ...autoCompleteDefaultProps };
     this.autoComplDefProps.value = props.query?.selectedQuery ? props.query.selectedQuery : '';
     this.refInput = React.createRef();
-    if (Object.keys(metricDict).length === 0) {
-      this.loadMetricsIndex()
-        .then((resp1: any) => {})
-        .catch((err: any) => {
-          this.setServiceCallInprogresState(false);
-        });
-    }
   }
 
   componentDidMount() {
@@ -95,6 +88,13 @@ export class QueryEditorAutoCompleteComponent extends PureComponent<Props, state
     this.setState({ queryText: '' });
     this.setState({ editorSelectedResource: this.editorSelectedResource });
     this.setState({ enableTimeSeries: this.enableTimeSeries });
+    if (Object.keys(metricDict).length === 0) {
+      this.loadMetricsIndex()
+        .then((resp1: any) => {})
+        .catch((err: any) => {
+          this.setServiceCallInprogresState(false);
+        });
+    }
   }
 
   async loadMetricsIndex() {
