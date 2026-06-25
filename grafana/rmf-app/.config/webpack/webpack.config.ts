@@ -202,6 +202,7 @@ const config = async (env): Promise<Configuration> => {
           { from: 'libs/**/*', to: '.', noErrorOnMissing: true }, // Optional
           { from: 'static/**/*', to: '.', noErrorOnMissing: true }, // Optional
           { from: '**/query_help.md', to: '.', noErrorOnMissing: true }, // Optional
+          { from: 'datasource/README.md', to: 'datasource', noErrorOnMissing: true }, // Nested datasource README
         ],
       }),
       // Replace certain template-variables in the README and plugin.json

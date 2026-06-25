@@ -7,7 +7,7 @@
   "includes": [
     {
       "type": "datasource",
-      "name": "IBM RMF for z/OS",
+      "name": "IBM RMF Data Source",
       "path": "datasource/plugin.json"
     },
     {
