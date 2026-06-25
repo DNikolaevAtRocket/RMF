@@ -17,7 +17,7 @@
 // import defaults from 'lodash/defaults';
 
 import { QueryEditorProps } from '@grafana/data';
-import { getBackendSrv, getTemplateSrv } from '@grafana/runtime';
+import { getTemplateSrv } from '@grafana/runtime';
 import { RadioButtonGroup, Spinner, Switch } from '@grafana/ui';
 import React, { PureComponent } from 'react';
 import { AutocompleteTextField } from '../autocomplete-text/autocomplete-textfield';
@@ -81,7 +81,7 @@ export class QueryEditorAutoCompleteComponent extends PureComponent<Props, state
     this.autoComplDefProps.value = props.query?.selectedQuery ? props.query.selectedQuery : '';
     this.refInput = React.createRef();
     if (Object.keys(metricDict).length === 0) {
-      this.loadDataFromService(props.datasource.id)
+      this.loadMetricsIndex()
         .then((resp1: any) => {})
         .catch((err: any) => {
           this.setServiceCallInprogresState(false);
@@ -97,35 +97,28 @@ export class QueryEditorAutoCompleteComponent extends PureComponent<Props, state
     this.setState({ enableTimeSeries: this.enableTimeSeries });
   }
 
-  async loadDataFromService(id: number) {
-    return await new Promise((resolve, reject) =>
-      getBackendSrv()
-        .fetch({
-          method: 'post',
-          headers: {
-            Accept: 'application/text',
-            'Content-Type': 'application/text',
-          },
-          url: `/api/datasources/${id}/resources/autopopulate`,
-          responseType: 'text',
-        })
-        .subscribe(
-          (resp) => {
-            if (resp.data) {
-              let result = JSON.parse(resp.data as string);
-              let resourceList: any[] = getResource(result);
-              metricDict = loadDataToDictionary(resourceList);
-              resolve(true);
-            } else {
-              reject(false);
-            }
-          },
-          (err) => {
-            this.setServiceCallInprogresState(false);
-            reject(false);
-          }
-        )
-    );
+  async loadMetricsIndex() {
+    try {
+      const data = await this.props.datasource.postResource<string>('autopopulate', undefined, {
+        headers: {
+          Accept: 'application/text',
+          'Content-Type': 'application/text',
+        },
+        responseType: 'text',
+      });
+
+      if (data) {
+        let result = JSON.parse(data as string);
+        let resourceList: any[] = getResource(result);
+        metricDict = loadDataToDictionary(resourceList);
+        return true;
+      } else {
+        return Promise.reject(false);
+      }
+    } catch (err) {
+      this.setServiceCallInprogresState(false);
+      return Promise.reject(false);
+    }
   }
 
   onTextChange = (val: string, e: any) => {
