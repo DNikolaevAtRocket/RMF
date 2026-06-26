@@ -1,7 +1,7 @@
 # Change Log
 
 ## 2.0.0.1 (2026-06-26)
-- Add Grafana v13 support.
+- Added support for Grafana v13.
 
 ## 2.0.0 (2026-03-06)
 - You can now import RMF Performance Monitoring dashboards and their associated data sources directly into Grafana for visualization.
