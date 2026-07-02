@@ -9,6 +9,10 @@
             <title>What's new</title>
             <dl id="dl_rsr_h3s_33c">
                 <dlentry>
+                    <dt>June 2026 v2.0.0.1</dt>
+                    <dd>Added support for Grafana v13.</dd>
+                </dlentry>
+                <dlentry>
                     <dt>March 2026 v2.0.0</dt>
                     <dd>
                         <ul id="ul_ysl_j3s_33c">
