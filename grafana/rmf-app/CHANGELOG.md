@@ -3,7 +3,11 @@
 ## 2.0.1
 
 - Updated dependencies to address known vulnerabilities.
+- Dropped Grafana v10 support.
 - Plugin is now signed by Grafana Labs.
+
+## 2.0.0.1 (2026-06-26)
+- Added support for Grafana v13.
 
 ## 2.0.0 (2026-03-06)
 - You can now import RMF Performance Monitoring dashboards and their associated data sources directly into Grafana for visualization.

@@ -18,12 +18,17 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/IBM/RMF/grafana/rmf-app/pkg/plugin/log"
 	"github.com/grafana/grafana-plugin-sdk-go/backend"
+	"github.com/grafana/grafana-plugin-sdk-go/backend/httpclient"
 )
 
 const DefaultHttpTimeout = 60
@@ -49,17 +54,17 @@ type Config struct {
 		SSL        bool    `json:"ssl"`
 		Username   string  `json:"userName"`
 		Password   string  `json:"password"`   // #nosec G117
-		SSLVerify  bool    `json:"skipVerify"` // NB: the meaning of JSON field is inverted.
+		SSLVerify  bool    `json:"skipVerify"` // NB: the meaning of the JSON field is inverted.
 		OmegamonDs string  `json:"omegamonDs"`
 	}
 }
 
-func (ds *RMFDatasource) getConfig(settings backend.DataSourceInstanceSettings) (*Config, error) {
+func (ds *RMFDatasource) getConfig(ctx context.Context, settings backend.DataSourceInstanceSettings) (*Config, *httpclient.Options, error) {
 	var config Config
 	logger := log.Logger.With("func", "getConfig")
 	err := json.Unmarshal(settings.JSONData, &config.JSON)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if config.JSON.Server != nil {
 		// Data source in legacy format
@@ -98,5 +103,33 @@ func (ds *RMFDatasource) getConfig(settings backend.DataSourceInstanceSettings) 
 		logger.Warn("cache size is not small, using minimal value", "cacheSize", config.CacheSize)
 		config.CacheSize = MinimalCacheSizeMB
 	}
-	return &config, nil
+
+	httpOpts, err := settings.HTTPClientOptions(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if httpOpts.Timeouts == nil {
+		defaults := httpclient.DefaultTimeoutOptions
+		httpOpts.Timeouts = &defaults
+	}
+	httpOpts.Timeouts.Timeout = time.Duration(config.Timeout) * time.Second
+	if config.JSON.TlsSkipVerify {
+		if httpOpts.TLS == nil {
+			httpOpts.TLS = &httpclient.TLSOptions{}
+		}
+		httpOpts.TLS.InsecureSkipVerify = true
+	}
+	if strings.TrimSpace(config.Username) != "" {
+		httpOpts.BasicAuth = &httpclient.BasicAuthOptions{
+			User:     config.Username,
+			Password: config.Password,
+		}
+	}
+	if config.JSON.DisableCompression {
+		httpOpts.ConfigureTransport = func(_ httpclient.Options, transport *http.Transport) {
+			transport.DisableCompression = true
+		}
+	}
+	config.URL = strings.TrimRight(config.URL, "/")
+	return &config, &httpOpts, nil
 }
