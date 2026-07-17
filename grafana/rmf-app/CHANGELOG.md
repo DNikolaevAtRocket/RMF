@@ -1,10 +1,10 @@
 # Change Log
 
-## 2.0.1
+## 2.0.1 (2026-07-17)
 
 - Updated dependencies to address known vulnerabilities.
-- Dropped Grafana v10 support.
-- Plugin is now signed by Grafana Labs.
+- Removed support for Grafana v10.
+- The RMF for z/OS Grafana plugin is now signed by Grafana Labs.
 
 ## 2.0.0.1 (2026-06-26)
 - Added support for Grafana v13.
