@@ -1,6 +1,6 @@
 # Change Log
 
-## 2.0.1 (2026-07-17)
+## 2.0.1 (2026-07-20)
 
 - Updated dependencies to address known vulnerabilities.
 - Removed support for Grafana v10.
