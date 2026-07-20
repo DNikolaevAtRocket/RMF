@@ -1,6 +1,6 @@
 module github.com/IBM/RMF/grafana/rmf-app
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/VictoriaMetrics/fastcache v1.13.3
